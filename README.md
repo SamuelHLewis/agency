@@ -1,0 +1,1 @@
+This repo holds configuration details for coding agents. It is primarily intended for us with OpenCode, but it can easily be adapted for other harnesses.
