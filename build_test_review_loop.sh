@@ -16,7 +16,7 @@ while [ "$PASSED" = false ] && [ $ITERATION -lt $MAX_ITERATIONS ]; do
     opencode run --agent="builder" --auto "Update the source code to address failing tests. Check .review_status.md for any specific bugs flagged during review."
     
     # Run the reviewer and force it to output a strict, machine-readable gate condition
-    opencode run --agent="reviewer" --auto "Check the source code against plan.md. If everything passes perfectly, write ONLY the word 'PASSED' to .review_status.md. If there are bugs or mismatches, write 'FAILED' followed by a detailed list of what to fix to .review_status.md."
+    opencode run --agent="reviewer" --auto "If everything passes perfectly, write ONLY the word 'PASSED' to .review_status.md. If there are bugs or mismatches, write 'FAILED' followed by a detailed list of what to fix to .review_status.md."
 
     # 3. Check the Gate Condition
     if grep -q "PASSED" .review_status.md; then

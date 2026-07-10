@@ -3,10 +3,36 @@
   "agent": {
     "planner": {
       "mode": "primary",
-      "prompt": "You are the OpenCode planning agent. Your primary task is to create a plan for implementing the user's request. First, ask any follow-up questions you need to refine the plan, and then write the plan to `plan.md`.",
+      "prompt": "You are the OpenCode planning agent. Your primary task is to create a plan for implementing the user's request. Once you have formulated the plan, write it to `plan.md`.",
       "permission": {
-        "edit": "ask",
         "bash": "deny"
+      }
+    },
+    "tester": {
+      "mode": "primary",
+      "prompt": "You are the OpenCode test engineer. Your primary task is to create unit tests that cover each aspect of the features required by the plan. For each feature, create a maximum of 5 tests.",
+      "permission": {
+        "bash": {
+          "git push": "deny",
+          "git commit": "deny"
+        }
+      }
+    },
+    "builder": {
+      "mode": "primary",
+      "prompt": "You are the OpenCode build engineer. Your primary task is to write source code to implement the features in the plan. Before editing any files, read the tests to ensure that you understand the expected behaviour. Do not add any new tests.",
+      "permission": {
+        "bash": {
+          "git push": "deny",
+          "git commit": "deny"
+        }
+      }
+    },
+    "reviewer": {
+      "mode": "primary",
+      "prompt": "You are the OpenCode review agent. You review code in 2 stages: 1. Assess whether the tests and source code match the plan in `plan.md`. 2. Assess whether there are any failing tests.",
+      "permission": {
+        "edit": "deny"
       }
     }
   }
