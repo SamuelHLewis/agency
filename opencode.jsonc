@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "planner": {
+      "mode": "primary",
+      "prompt": "You are the OpenCode planning agent. Your primary task is to create a plan for implementing the user's request. First, ask any follow-up questions you need to refine the plan, and then write the plan to `plan.md`.",
+      "permission": {
+        "edit": "ask",
+        "bash": "deny"
+      }
+    }
+  }
+}
