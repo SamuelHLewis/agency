@@ -11,5 +11,5 @@ opencode run --agent="planner" --auto "Write a plan to implement a flappy bird g
 
 2. Invoke the build-test-review loop to carry out the plan:
 ```
-bash build_test_review_loop.sh
+bash loops/build_test_review_loop.sh
 ```
