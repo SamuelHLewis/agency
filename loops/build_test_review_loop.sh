@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# check if the session database exists, and delete it if so
+# this allows the stats of each call within the loop to be accurately aggregated
+session_db_path="/root/.local/share/opencode/opencode.db"
+
+if [ -f "$session_db_path" ]; then
+    rm -rf "$session_db_path"
+    echo "OpenCode session db deleted."
+fi
+
 PASSED=false
 MAX_ITERATIONS=5
 ITERATION=0
@@ -23,6 +32,7 @@ while [ "$PASSED" = false ] && [ $ITERATION -lt $MAX_ITERATIONS ]; do
         PASSED=true
         echo "🎉 Review passed successfully on iteration $ITERATION!"
         rm .review_status.md  # Clean up state file
+        opencode stats > session_stats.txt
     else
         echo "❌ Review failed. Feedback cycled back to the builder."
     fi
@@ -30,5 +40,6 @@ done
 
 if [ "$PASSED" = false ]; then
     echo "⚠️ Loop terminated: Reached maximum iterations ($MAX_ITERATIONS) without a successful review."
+    opencode stats > session_stats.txt
     exit 1
 fi
