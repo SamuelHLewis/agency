@@ -18,8 +18,8 @@ while [ "$PASSED" = false ] && [ $ITERATION -lt $MAX_ITERATIONS ]; do
     ((ITERATION++))
     echo "🔄 Starting Loop Iteration $ITERATION..."
 
-    # Run the tester to generate/align tests
-    opencode run --agent="tester" --auto "Write or update tests that match the plan in plan.md"
+    # Run the tester to generate/improve tests
+    opencode run --agent="tester" --auto "Write or update tests that: 1. Match the plan in plan.md 2. Address any feedback in .review_status.md"
     
     # Run the builder, explicitly telling it to look at the reviewer's feedback if it exists
     opencode run --agent="builder" --auto "Update the source code to address failing tests. Check .review_status.md for any specific bugs flagged during review."
@@ -34,7 +34,7 @@ while [ "$PASSED" = false ] && [ $ITERATION -lt $MAX_ITERATIONS ]; do
         rm .review_status.md  # Clean up state file
         opencode stats > session_stats.txt
     else
-        echo "❌ Review failed. Feedback cycled back to the builder."
+        echo "❌ Review failed. Feedback cycled back to the tester & builder."
     fi
 done
 
