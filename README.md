@@ -18,23 +18,23 @@ bash loops/build_test_review_loop.sh
 ### Why Sandbox?
 Coding loops are designed to act autonomously, completing a task and reporting back to a human rather than asking a human's permission at every step. While this ia enourmously powerful and very productive, it introduces the risk of unexpected commands being issued and critical files being accessed and modified. It is therefore advisable to run the coding loop in a container, which imposes OS-level restrictions on the files that the agents can access.
 
-## Prerequisites
+### Prerequisites
 
 * MacOS 12+
 * homebrew
 * an account with a coding assistant provider (if using a proprietary assistant)
 
-## Caveats
+### Caveats
 
 * These instructions are intended as a general guide, not a rigorous specification. Details may differ depending on your OS or hardware.
 * This sandbox setup allows access to the internet, so you still need to supervise your assistant.
 * The functions below are working examples only, they are not recommendations of best security practice. You are responsible for deciding what implementation gives you an appropriate balance of security and functionality.
 
-## Initial Setup
+### Initial Setup
 
 The following steps only need to be carried out the first time you set up your sandbox.
 
-### Podman Installation
+#### Podman Installation
 
 We use Podman because it doesn't require root privileges. To install it on MacOS, type into terminal:
 
@@ -54,7 +54,7 @@ Finally, create an image for the container that contains the coding agent and it
 podman build --no-cache -t localhost/opencode-base ~/coding_sandbox/
 ```
 
-### Loop Custom Command
+#### Loop Custom Command
 
 Add this to your shell config file (`.bashrc` or `.zshrc`):
 ```
@@ -104,11 +104,11 @@ opencode_bash_sandboxed() {
 }
 ```
 
-## How to Run
+### How to Run
 
 Having completed the Initial Setup procedure outlined above, the following steps need to be run each time you start up your computer.
 
-### Podman
+#### Podman
 
 To start the VM, run:
 
@@ -122,8 +122,61 @@ And check that it has launched successfully by running:
 podman info
 ```
 
-Then run the loop with:
+#### Loop Launch
+
+Once the podman VM is running, launch the loop with:
 
 ```
 opencode_bash_sandboxed /path/to/your/project ./loops/build_test_review_loop.sh
+```
+
+## OpenCode Configuration
+
+If you are using OpenCode, there are two files that you need to modify to ensure that OpenCode can run: `auth.json` and `opencode.jsonc`.
+
+### auth.json
+
+This file holds your API keys and metadata for your model deployments. On MacOS it can be found at:
+
+`~/.local/share/opencode/auth.json`
+
+Each cloud platform has a separate entry, with common variable names across the entries.
+
+For example, if you want to access models deployed on Azure Foundry and AWS Bedrock, your `auth.json` will look like this:
+```json
+{
+  "azure": {
+    "type": "api",
+    "key": "replace-with-your-Azure-Foundry-api-key",
+    "metadata": {
+      "resourceName": "replace-with-your-Azure-resource-name"
+    }
+  },
+  "amazon-bedrock": {
+    "type": "api",
+    "key": "replace-with-your-AWS-Bedrock-key"
+  }
+}
+```
+
+### opencode.jsonc
+
+This file holds metadata about your cloud platforms, names of models, and specifications for agents. On MacOS it can be found at:
+
+`~/.config/opencode/opencode.jsonc`
+
+For example, if you are deploying Claude Sonnet 5 on AWS Bedrock, your `opencode.jsonc` will look like this:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "amazon-bedrock": {
+      "options": {
+        "region": "replace-with-your-region"
+      }
+    }
+  },
+  "model": "amazon-bedrock/anthropic.claude-sonnet-5"
+}
 ```
