@@ -5,12 +5,12 @@ This repo holds configuration details for coding agents. It is primarily intende
 To run an autonomous coding loop, carry out the following steps:
 
 1. Give your request to the planning agent and answer any follow up questions
-```
+```bash
 opencode run --agent="planner" "Write a plan to implement a flappy bird game that can be played on the browser"
 ```
 
 2. Invoke the build-test-review loop to carry out the plan:
-```
+```bash
 bash loops/build_test_review_loop.sh
 ```
 
@@ -38,26 +38,26 @@ The following steps only need to be carried out the first time you set up your s
 
 We use Podman because it doesn't require root privileges. To install it on MacOS, type into terminal:
 
-```
+```bash
 brew install podman
 ```
 
 Then create the lightweight Linux VM that will host your containers:
 
-```
+```bash
 podman machine init
 ```
 
 Finally, create an image for the container that contains the coding agent and its dependencies:
 
-```
+```bash
 podman build --no-cache -t localhost/opencode-base ~/coding_sandbox/
 ```
 
 #### Loop Custom Command
 
 Add this to your shell config file (`.bashrc` or `.zshrc`):
-```
+```bash
 opencode_bash_sandboxed() {
   # Require at least the target directory and the script to run
   if [ "$#" -lt 2 ]; then
@@ -112,13 +112,13 @@ Having completed the Initial Setup procedure outlined above, the following steps
 
 To start the VM, run:
 
-```
+```bash
 podman machine start
 ```
 
 And check that it has launched successfully by running:
 
-```
+```bash
 podman info
 ```
 
@@ -126,7 +126,7 @@ podman info
 
 Once the podman VM is running, launch the loop with:
 
-```
+```bash
 opencode_bash_sandboxed /path/to/your/project ./loops/build_test_review_loop.sh
 ```
 
@@ -161,22 +161,47 @@ For example, if you want to access models deployed on Azure Foundry and AWS Bedr
 
 ### opencode.jsonc
 
-This file holds metadata about your cloud platforms, names of models, and specifications for agents. On MacOS it can be found at:
+This file holds metadata about your cloud platforms and specifications for agents. On MacOS it can be found at:
 
 `~/.config/opencode/opencode.jsonc`
 
-For example, if you are deploying Claude Sonnet 5 on AWS Bedrock, your `opencode.jsonc` will look like this:
+This file allows you to specify different models for each agent. For example, if you want your build agent to use gpt-5.3-codex deployed on Azure Foundry, and your reviewer agent to use Claude Sonnet 5 deployed on AWS Bedrock, your `opencode.jsonc` will look like this:
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "amazon-bedrock": {
-      "options": {
-        "region": "replace-with-your-region"
+      "amazon-bedrock": {
+        "options": {
+          "region": "replace-with-your-AWS-region"
+        }
+      },
+      "azure": {
+        "options": {
+          "resourceName": "replace-with-your-Azure-resource-name"
+        }
+      }
+    },
+  "agent": {
+    "builder": {
+      "mode": "primary",
+      "model": "azure/gpt-5.3-codex",
+      "prompt": "You are the build engineer. Your primary task is to write source code to implement features.",
+      "permission": {
+        "bash": {
+          "git push": "deny",
+          "git commit": "deny"
+        }
+      }
+    },
+    "reviewer": {
+      "mode": "primary",
+      "model": "amazon-bedrock/anthropic.claude-sonnet-5",
+      "prompt": "You are the review agent. Your primary task is to review code.",
+      "permission": {
+        "edit": "deny"
       }
     }
-  },
-  "model": "amazon-bedrock/anthropic.claude-sonnet-5"
+  }
 }
 ```
