@@ -58,10 +58,10 @@ podman build --no-cache -t localhost/opencode-base ~/coding_sandbox/
 
 Add this to your shell config file (`.bashrc` or `.zshrc`):
 ```bash
-opencode_bash_sandboxed() {
+opencode_loop_sandboxed() {
   # Require at least the target directory and the script to run
   if [ "$#" -lt 2 ]; then
-    echo "Usage: opencode_bash_sandboxed <target_dir> <script_path_relative_to_target> [args...]"
+    echo "Usage: opencode_loop_sandboxed <target_dir> <script_path_relative_to_target> [args...]"
     return 1
   fi
 
@@ -70,12 +70,16 @@ opencode_bash_sandboxed() {
 
   # 1. Ensure the sandbox layout exists
   mkdir -p "$HOME/.ai-sandbox-home/.local/bin"
+  mkdir -p "$HOME/.ai-sandbox-home/.local/share/opencode"
   mkdir -p "$HOME/.ai-sandbox-home/.opencode"
+  chmod 700 "$HOME/.ai-sandbox-home/.local/share/opencode"
   chmod 700 "$HOME/.ai-sandbox-home/.opencode"
 
-  # 2. Mirror the host OpenCode config into the sandbox before starting
+  # 2. Mirror the host OpenCode config/auth into the sandbox before starting
   local OPENCODE_CONFIG_SRC="${OPENCODE_CONFIG_SRC:-$HOME/.config/opencode/opencode.jsonc}"
   local OPENCODE_SANDBOX_CONFIG="${OPENCODE_SANDBOX_CONFIG:-$HOME/.ai-sandbox-home/.opencode/opencode.jsonc}"
+  local OPENCODE_AUTH_SRC="${OPENCODE_AUTH_SRC:-$HOME/.local/share/opencode/auth.json}"
+  local OPENCODE_SANDBOX_AUTH="${OPENCODE_SANDBOX_AUTH:-$HOME/.ai-sandbox-home/.local/share/opencode/auth.json}"
 
   if [ ! -f "$OPENCODE_CONFIG_SRC" ]; then
     printf 'Host opencode config not present at %s, skipping copy.\n' "$OPENCODE_CONFIG_SRC" >&2
@@ -88,6 +92,20 @@ opencode_bash_sandboxed() {
       cp "$OPENCODE_CONFIG_SRC" "$OPENCODE_SANDBOX_CONFIG"
       chmod 600 "$OPENCODE_SANDBOX_CONFIG"
       printf 'Copied host opencode config into sandbox (%s).\n' "$OPENCODE_SANDBOX_CONFIG" >&2
+    fi
+  fi
+
+  if [ ! -f "$OPENCODE_AUTH_SRC" ]; then
+    printf 'Host opencode auth file not present at %s, skipping copy.\n' "$OPENCODE_AUTH_SRC" >&2
+  else
+    mkdir -p "$(dirname "$OPENCODE_SANDBOX_AUTH")"
+    if [ -f "$OPENCODE_SANDBOX_AUTH" ] && cmp -s "$OPENCODE_AUTH_SRC" "$OPENCODE_SANDBOX_AUTH"; then
+      chmod 600 "$OPENCODE_SANDBOX_AUTH"
+      printf 'Sandbox opencode auth file already up to date (%s).\n' "$OPENCODE_SANDBOX_AUTH" >&2
+    else
+      cp "$OPENCODE_AUTH_SRC" "$OPENCODE_SANDBOX_AUTH"
+      chmod 600 "$OPENCODE_SANDBOX_AUTH"
+      printf 'Copied host opencode auth file into sandbox (%s).\n' "$OPENCODE_SANDBOX_AUTH" >&2
     fi
   fi
 
@@ -127,7 +145,7 @@ podman info
 Once the podman VM is running, launch the loop with:
 
 ```bash
-opencode_bash_sandboxed /path/to/your/project ./loops/build_test_review_loop.sh
+opencode_loop_sandboxed /path/to/your/project ./loops/build_test_review_loop.sh
 ```
 
 ## OpenCode Configuration
@@ -171,14 +189,14 @@ This file allows you to specify different models for each agent. For example, if
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
-      "amazon-bedrock": {
-        "options": {
-          "region": "replace-with-your-AWS-region"
-        }
-      },
       "azure": {
         "options": {
           "resourceName": "replace-with-your-Azure-resource-name"
+        }
+      },
+      "amazon-bedrock": {
+        "options": {
+          "region": "replace-with-your-AWS-region"
         }
       }
     },
